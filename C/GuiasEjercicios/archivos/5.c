@@ -7,6 +7,7 @@
 */
 
 #include <stdio.h>
+#include <string.h>
 #define MAX 30
 #define TAM 2
 
@@ -43,12 +44,11 @@ void mostrar_personas_struct(t_persona vPersona[TAM]){
 	printf("\n");
 }
 
-
 void guardar_personas_archivo(t_persona vPersona[TAM]){
 	FILE *entrada;
 	int i;
 	
-	entrada = fopen("entrada.dat", "rb");
+	entrada = fopen("entrada.dat", "wb");
 	if(entrada == NULL){
 		printf("No se pudo abrir el archivo de entrada");
 	}
@@ -57,11 +57,10 @@ void guardar_personas_archivo(t_persona vPersona[TAM]){
 		for(i=0; i<TAM; i++)
 			fwrite(&entrada[i], sizeof(t_persona), 1, entrada);			
 	}
+	printf("\nArchivo de entrada creado\n");
+
 }
 
-void ordenar_personas(){
-	
-}
 
 void mostrar_archivo(){
 	t_persona vPersona;
@@ -69,7 +68,7 @@ void mostrar_archivo(){
 	printf("------------\n");
 	entrada = fopen("entrada.dat", "rb");
 	if(entrada == NULL)
-		printf("No se pudo abrir");
+		printf("No se pudo abrir el archivo de entrada");
 	else{
 		fread(&vPersona, sizeof(vPersona),1,entrada);
 		printf("NOMBRE \tAPELLIDO\n");
@@ -83,6 +82,34 @@ void mostrar_archivo(){
 	return;
 }
 
+void ordenar_archivo(FILE* entrada, FILE* salida) {
+    t_persona aux,persona, vecPersonas[TAM];
+    int i=0,j;
+    
+    fread(&persona, sizeof(t_persona), 1, entrada);
+	   
+    while (!feof(entrada)) {
+        strcpy(vecPersonas[i].nombre, persona.nombre);
+        strcpy(vecPersonas[i].apellido, persona.apellido);
+
+    	fread(&persona, sizeof(t_persona), 1, entrada);
+        i++;
+    }
+    
+    for(i=1; i<TAM; i++){ //ciclo de n-1 iteraciones
+	    for(j=0; j<TAM-i; j++){ // "burbujeo" del mayor valor
+			if(strcmp(vecPersonas[j].apellido, vecPersonas[j+1].apellido) > 0) {
+		         aux=vecPersonas[j];
+		         vecPersonas[j]=vecPersonas[j+1];
+		         vecPersonas[j+1]=aux;
+	       }
+	    }
+	  }
+    printf("\n");
+    for(i=0; i<TAM; i++)
+    	printf("Usuario: %s\t%s\n", vecPersonas[i].nombre,vecPersonas[i].apellido);
+    
+}
 
 int main(){
 	t_persona p[TAM];
@@ -90,12 +117,21 @@ int main(){
 	FILE*entrada, *salida;
 	
 	cargar_personas_struct(p);
-	mostrar_personas_struct(p);
-
+	/*mostrar_personas_struct(p);*/
+	
 	guardar_personas_archivo(p);
-   	printf("\nArchivo de entrada creado\n");
    	mostrar_archivo();
    	
+   	entrada=fopen("entrada.dat", "rb");
+   	salida=fopen("salida.dat", "wb");
+ 	if(entrada == NULL || salida == NULL){
+ 		printf("Error al abrir archivo\n");
+	 }  	
+	 else{
+	 	ordenar_archivo(entrada,salida);
+	 	fclose(entrada);
+	 	fclose(salida);
+	 }
 	
 	return 0;
 }
